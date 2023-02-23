@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Kitchen;
 using KitchenData;
 using KitchenMods;
 using RealisticOrdering.Components; 
-using Unity.Collections; 
-using UnityEngine;
+using Unity.Collections;
 using ComponentType = Unity.Entities.ComponentType;
 using EntityQuery = Unity.Entities.EntityQuery;
+using Random = UnityEngine.Random;
 
 namespace RealisticOrdering.Systems;
  
@@ -60,14 +61,32 @@ public class CustomerPreferencesSystem : GenericSystemBase, IModSystem
     }
 
     private int DetermineHungerLevel()
-    { 
-        return Utility.OddsCalculation() switch
+    {
+        var oddsRoll = Utility.OddsCalculation();
+        return GameInfo.CurrentDay switch
         {
-            > 0 and < 11 => Random.Range(0,25), 
-            > 10 and < 21 => Random.Range(15,45), 
-            > 20 and < 31 => Random.Range(50,60), 
-            _ => Random.Range(20,65),
+            < 4 => oddsRoll switch
+            { 
+                < 60 => Random.Range(50, 70), 
+                _ => Random.Range(40, 65)
+            },
+            > 5 and < 8 => oddsRoll switch
+            {
+                < 10 => Random.Range(20, 40),  
+                > 30 and < 45 => Random.Range(25, 50),
+                _ => Random.Range(30, 65)
+            },
+            > 9 => oddsRoll switch
+            {
+                0 => 0,
+                > 0 and < 5 => Random.Range(50, 65),  
+                > 10 and < 30 => Random.Range(25, 45), 
+                > 95 => Random.Range(5, 15),  
+                _ => Random.Range(10, 65)
+            },
+            _ => throw new ArgumentOutOfRangeException()
         };
+
     }
-    
+
 }

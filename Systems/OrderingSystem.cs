@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Kitchen;
 using KitchenData;
 using KitchenLib.Utils;
@@ -97,27 +98,9 @@ public class OrderingSystem : GenericSystemBase, IModSystem
     private CMenuItemDetails DetermineNextMeal(CCustomerOrderPreferences customerOrder, Entity group)
     {
         // Check for Display stands 
-        foreach (var test in _encouragers.ToEntityArray(Allocator.Temp))
-        {
-            var data = EntityManager.GetComponentData<COrderEncourager>(test);
-            var thisItem = EntityManager.GetComponentData<CItemHolder>(test);
-            var pos = EntityManager.GetComponentData<CPosition>(test);
-            if (!EntityManager.HasComponent<CCreateItem>(thisItem.HeldItem)) continue;
-
-            Utility.Log("Probability " + data.Probability);
-            Utility.Log("Item " + thisItem.HeldItem.GetType());
-            var thisTest = EntityManager.GetComponentData<CCreateItem>(thisItem.HeldItem);
-            if (EntityManager.HasComponent<CDishChoice>(thisItem.HeldItem))
-            {
-                var thisTest2 = EntityManager.GetComponentData<CDishChoice>(thisItem.HeldItem);
-                Utility.Log("HAS DISH!" + thisTest2.Dish.ToString());
-            }
-
-            Utility.Log(thisTest.ID.ToString());
-            Utility.Log("POS " + pos.Position);
-        } // END TEST
-
- 
+        var thisDisplayStand = FindDisplayStands(group);
+        if (thisDisplayStand.HasValue && Utility.OddsCalculation() < 50) return thisDisplayStand.Value;
+        
         var currentMenu = _activeMenuQuery.First<CActiveMenu>();
         var mealType = currentMenu.DetermineMenuType(customerOrder.TotalMealCount);
         var dishType = currentMenu.DetermineDishType(customerOrder.TotalMealCount);
@@ -187,6 +170,29 @@ public class OrderingSystem : GenericSystemBase, IModSystem
 
         EntityManager.SetComponentData<CGroupChoosingOrder>(group, groupOrdering);
         return false;
+    }
+
+    private CMenuItemDetails? FindDisplayStands(Entity group)
+    {
+        foreach (var displayStandEntities in _encouragers.ToEntityArray(Allocator.Temp))
+        {
+            var data = EntityManager.GetComponentData<COrderEncourager>(displayStandEntities);
+            var position = EntityManager.GetComponentData<CPosition>(displayStandEntities);
+            var groupPosition = EntityManager.GetComponentData<CPosition>(group);
+            var distance = UnityEngine.Vector3.Distance(groupPosition.Position, position.Position);
+            if (distance > 5) continue;
+
+            var thisItemHolder = EntityManager.GetComponentData<CItemHolder>(displayStandEntities);
+            if (thisItemHolder.HeldItem.Index == 0) continue;
+            var thisItem = EntityManager.GetComponentData<CItem>(thisItemHolder.HeldItem);
+            return _menuItemsQuery
+                .ToComponentDataArray<CMenuItemDetails>(Allocator.Temp)
+                .First(i => i.ItemID == thisItem.ID);
+
+
+        }
+
+        return null;
     }
 
     private void UpdateGroupStatus(Entity thisGroup, float bonusTime)
