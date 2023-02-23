@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<Configurations>Release;Debug</Configurations>
+		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
+		<LangVersion>latest</LangVersion>
+		<NoWarn>CS0114</NoWarn>
+	</PropertyGroup>
+	
+	<PropertyGroup> 
+		<WorkshopDir>F:\SteamLibrary\steamapps\common\PlateUp\PlateUp\Mods\RealisticOrdering</WorkshopDir> 
+		<EnableAssetBundleDeploy>false</EnableAssetBundleDeploy> 
+		<AssetBundlePath>$(ProjectDir)content\$(AssemblyName).assets</AssetBundlePath>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+	  <DefineConstants>DEBUG;TRACE;</DefineConstants>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+	  <DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
+	
+	<!-- Exclude build artifacts and Unity project -->
+	<ItemGroup>
+	  <Compile Remove="content\**" />
+	  <Compile Remove="UnityProject\**" />
+	  <EmbeddedResource Remove="content\**" />
+	  <EmbeddedResource Remove="UnityProject\**" />
+	  <None Remove="content\**" />
+	  <None Remove="UnityProject\**" />
+	</ItemGroup>
+	
+	<!-- Exclude workshop metadata -->
+	<ItemGroup>
+	  <None Remove="plateup_mod_metadata.json" />
+	  <None Remove="*.png" />
+	</ItemGroup>
+  
+	<ItemGroup>
+		<PackageReference Include="MessagePack.Annotations" Version="2.4.59" />
+		<PackageReference Include="Yariazen.PlateUp.ModBuildUtilities" Version="1.6.16" />	 
+	</ItemGroup>
+
+</Project>

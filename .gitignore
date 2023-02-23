@@ -401,3 +401,7 @@ FodyWeavers.xsd
 /WorkshopFolder/content/**/*.dll
 
 content/
+obj/
+bin/
+.idea/
+.git/
